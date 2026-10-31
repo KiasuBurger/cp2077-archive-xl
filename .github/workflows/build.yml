@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out the repository and its submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Configure
+        run: xmake f -m release -y -v
+
+      - name: Build
+        run: xmake -y -v
+
+      - name: Upload the DLL and its PDB
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArchiveXL-${{ github.sha }}
+          path: |
+            build/windows/x64/release/ArchiveXL.dll
+            build/windows/x64/release/ArchiveXL.pdb
+          if-no-files-found: error
